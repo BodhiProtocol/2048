@@ -416,7 +416,7 @@ function setMode(m) {
 }
 
 function initGame() {
-  const SIZE = mode === 'kids' ? 3 : 4;
+  const SIZE = 4;
   board = Array.from({ length: SIZE }, () => Array(SIZE).fill(0));
   score = 0; gameOver = false; won = false; prevBoard = null;
   addTile(); addTile();
