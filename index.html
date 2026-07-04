@@ -538,10 +538,10 @@ document.addEventListener('keydown', e => {
 
 /* ── Swipe ─────────────────────────────────────────────────────── */
 let tx, ty;
-document.getElementById('grid-wrap').addEventListener('touchstart', e => {
+document.addEventListener('touchstart', e => {
   tx = e.touches[0].clientX; ty = e.touches[0].clientY;
 }, { passive: true });
-document.getElementById('grid-wrap').addEventListener('touchend', e => {
+document.addEventListener('touchend', e => {
   const dx = e.changedTouches[0].clientX - tx;
   const dy = e.changedTouches[0].clientY - ty;
   if (Math.max(Math.abs(dx), Math.abs(dy)) < 20) return;
