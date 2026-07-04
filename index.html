@@ -164,6 +164,47 @@
     }
     #new-game:hover { opacity: 0.85; }
 
+    /* ── About section ──────────────────── */
+    #about {
+      max-width: 420px;
+      width: 100%;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      overflow: hidden;
+    }
+    #about summary {
+      padding: 10px 16px;
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--text-secondary);
+      cursor: pointer;
+      list-style: none;
+      user-select: none;
+    }
+    #about summary::before { content: 'ℹ️  '; }
+    #about[open] summary { border-bottom: 1px solid var(--border); }
+    .about-body {
+      padding: 14px 16px;
+      font-size: 13px;
+      color: var(--text-secondary);
+      line-height: 1.7;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+    .about-body h4 {
+      font-size: 12px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      color: var(--text-primary);
+      margin-bottom: 2px;
+    }
+    .about-body p { margin: 0; }
+    .about-body ul { padding-left: 16px; margin: 0; }
+    .about-body li { margin-bottom: 2px; }
+
     /* ── Footer ──────────────────────────── */
     footer {
       font-size: 12px;
@@ -299,6 +340,28 @@
 <!-- ── Message + New Game ────────────────────────────────────────────────── -->
 <div id="msg"></div>
 <button id="new-game" onclick="initGame()">New Game</button>
+
+<details id="about">
+  <summary>About 2048</summary>
+  <div class="about-body">
+    <div>
+      <h4>The Origin</h4>
+      <p>Created by <strong>Gabriele Cirulli</strong>, a 19-year-old Italian developer, in <strong>March 2014</strong> — built in a single weekend for fun. Within a week it had <strong>4 million visitors</strong>.</p>
+    </div>
+    <div>
+      <h4>How to Win</h4>
+      <p>Slide tiles to merge matching numbers. 2+2=4, 4+4=8… keep going until you reach <strong>2048</strong>. Every tile is a power of 2 — you need at least 11 perfect merges to win.</p>
+    </div>
+    <div>
+      <h4>Strategy Tips</h4>
+      <ul>
+        <li>Pick a <strong>corner</strong> and never move your highest tile away from it</li>
+        <li>Build a <strong>snake pattern</strong> — biggest tile flowing down to smallest</li>
+        <li>Avoid the move that displaces your highest tile</li>
+      </ul>
+    </div>
+  </div>
+</details>
 
 <footer>
   Zero dependencies · Works offline ·
