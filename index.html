@@ -151,7 +151,8 @@
     }
 
     /* ── New game button ─────────────────── */
-    #new-game {
+    #action-row { display: flex; gap: 10px; justify-content: center; }
+    #new-game, #btn-undo {
       background: var(--text-primary);
       color: var(--bg);
       border: none;
@@ -162,7 +163,8 @@
       cursor: pointer;
       transition: opacity 0.15s;
     }
-    #new-game:hover { opacity: 0.85; }
+    #btn-undo { background: #6c757d; color: #fff; }
+    #new-game:hover, #btn-undo:hover { opacity: 0.85; }
 
     /* ── About section ──────────────────── */
     #about {
@@ -334,12 +336,15 @@
 
 <!-- ── Hint ─────────────────────────────────────────────────────────────── -->
 <div id="hint">
-  ⬆️⬇️⬅️➡️ <b>Arrow keys</b> or <b>Swipe</b> to merge tiles &nbsp;·&nbsp; Reach <b>2048</b> to win!
+  ⬆️⬇️⬅️➡️ <b>Arrow keys</b> or <b>Swipe</b> to merge tiles &nbsp;·&nbsp; Reach <b>256</b> to win!
 </div>
 
 <!-- ── Message + New Game ────────────────────────────────────────────────── -->
 <div id="msg"></div>
-<button id="new-game" onclick="initGame()">New Game</button>
+<div id="action-row">
+  <button id="new-game" onclick="initGame()">New Game</button>
+  <button id="btn-undo" onclick="undo()" style="display:none">↩️ Undo</button>
+</div>
 
 <details id="about">
   <summary>About 2048</summary>
@@ -400,6 +405,7 @@ const KIDS_COLORS = {
 
 /* ── State ─────────────────────────────────────────────────────── */
 let board, score, mode = 'kids', gameOver = false, won = false;
+let prevBoard = null, prevScore = 0;
 
 /* ── Init ──────────────────────────────────────────────────────── */
 function setMode(m) {
@@ -410,22 +416,26 @@ function setMode(m) {
 }
 
 function initGame() {
-  board = Array.from({ length: 4 }, () => Array(4).fill(0));
-  score = 0;
-  gameOver = false;
-  won = false;
+  const SIZE = mode === 'kids' ? 3 : 4;
+  board = Array.from({ length: SIZE }, () => Array(SIZE).fill(0));
+  score = 0; gameOver = false; won = false; prevBoard = null;
   addTile(); addTile();
   document.getElementById('msg').textContent = '';
   document.getElementById('hint').classList.remove('hidden');
+  document.getElementById('hint').innerHTML = mode === 'kids'
+    ? '⬆️⬇️⬅️➡️ <b>Arrow keys</b> or <b>Swipe</b> to merge tiles &nbsp;·&nbsp; Reach <b>256</b> to win!'
+    : '⬆️⬇️⬅️➡️ <b>Arrow keys</b> or <b>Swipe</b> to merge tiles &nbsp;·&nbsp; Reach <b>2048</b> to win!';
+  document.getElementById('btn-undo').style.display = mode === 'kids' ? 'inline-block' : 'none';
   updateScore();
   render();
 }
 
 /* ── Tile placement ────────────────────────────────────────────── */
 function addTile() {
+  const SIZE = board.length;
   const empty = [];
-  for (let r = 0; r < 4; r++)
-    for (let c = 0; c < 4; c++)
+  for (let r = 0; r < SIZE; r++)
+    for (let c = 0; c < SIZE; c++)
       if (board[r][c] === 0) empty.push([r, c]);
   if (!empty.length) return;
   const [r, c] = empty[Math.floor(Math.random() * empty.length)];
@@ -442,32 +452,35 @@ function slideRow(row) {
       r.splice(i + 1, 1);
     }
   }
-  while (r.length < 4) r.push(0);
+  while (r.length < row.length) r.push(0);
   return r;
 }
 
 /* ── Move ──────────────────────────────────────────────────────── */
 function move(dir) {
   if (gameOver) return;
+  const SIZE = board.length;
   const prev = board.map(r => [...r]);
+  const scoreBefore = score;
 
   if (dir === 'left' || dir === 'right') {
-    for (let r = 0; r < 4; r++) {
+    for (let r = 0; r < SIZE; r++) {
       const row = dir === 'right' ? [...board[r]].reverse() : [...board[r]];
       const slid = slideRow(row);
       board[r] = dir === 'right' ? slid.reverse() : slid;
     }
   } else {
-    for (let c = 0; c < 4; c++) {
-      const col = [0,1,2,3].map(r => board[r][c]);
+    for (let c = 0; c < SIZE; c++) {
+      const col = Array.from({ length: SIZE }, (_, r) => board[r][c]);
       const slid = slideRow(dir === 'down' ? col.reverse() : col);
       const final = dir === 'down' ? slid.reverse() : slid;
-      for (let r = 0; r < 4; r++) board[r][c] = final[r];
+      for (let r = 0; r < SIZE; r++) board[r][c] = final[r];
     }
   }
 
   const moved = board.some((row, r) => row.some((v, c) => v !== prev[r][c]));
-  if (!moved) return;
+  if (!moved) { score = scoreBefore; return; }
+  prevBoard = prev; prevScore = scoreBefore;
 
   document.getElementById('hint').classList.add('hidden');
   addTile();
@@ -478,24 +491,35 @@ function move(dir) {
 
 /* ── End detection ─────────────────────────────────────────────── */
 function checkEnd() {
+  const SIZE = board.length;
+  const target = mode === 'kids' ? 256 : 2048;
   // Win
-  if (!won && board.flat().includes(2048)) {
+  if (!won && board.flat().includes(target)) {
     won = true;
     document.getElementById('msg').textContent =
-      mode === 'kids' ? '🎉 Amazing! You reached 2048!' : '🏆 You reached 2048! Keep going?';
+      mode === 'kids' ? `🎉 Amazing! You reached ${target}!` : `🏆 You reached ${target}! Keep going?`;
   }
-  // Loss
-  for (let r = 0; r < 4; r++)
-    for (let c = 0; c < 4; c++)
+  // Loss — kids keep playing forever
+  if (mode === 'kids') return;
+  for (let r = 0; r < SIZE; r++)
+    for (let c = 0; c < SIZE; c++)
       if (board[r][c] === 0) return;
-  for (let r = 0; r < 4; r++)
-    for (let c = 0; c < 4; c++) {
-      if (c < 3 && board[r][c] === board[r][c+1]) return;
-      if (r < 3 && board[r][c] === board[r+1][c]) return;
+  for (let r = 0; r < SIZE; r++)
+    for (let c = 0; c < SIZE; c++) {
+      if (c < SIZE - 1 && board[r][c] === board[r][c+1]) return;
+      if (r < SIZE - 1 && board[r][c] === board[r+1][c]) return;
     }
   gameOver = true;
-  document.getElementById('msg').textContent =
-    mode === 'kids' ? '😢 No more moves! Try again!' : 'Game over. No moves left.';
+  document.getElementById('msg').textContent = 'Game over. No moves left.';
+}
+
+/* ── Undo ──────────────────────────────────────────────────────── */
+function undo() {
+  if (!prevBoard) return;
+  board = prevBoard; score = prevScore; prevBoard = null;
+  gameOver = false; won = false;
+  document.getElementById('msg').textContent = '';
+  updateScore(); render();
 }
 
 /* ── Score ─────────────────────────────────────────────────────── */
@@ -509,11 +533,13 @@ function updateScore() {
 
 /* ── Render ────────────────────────────────────────────────────── */
 function render() {
+  const SIZE = board.length;
   const wrap = document.getElementById('grid-wrap');
   const colors = mode === 'kids' ? KIDS_COLORS : ADULT_COLORS;
+  wrap.style.gridTemplateColumns = `repeat(${SIZE}, 1fr)`;
   wrap.innerHTML = '';
-  for (let r = 0; r < 4; r++) {
-    for (let c = 0; c < 4; c++) {
+  for (let r = 0; r < SIZE; r++) {
+    for (let c = 0; c < SIZE; c++) {
       const v = board[r][c];
       const div = document.createElement('div');
       div.className = 'tile';
