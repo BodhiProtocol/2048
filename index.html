@@ -3,6 +3,8 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link rel="manifest" href="manifest.json" />
+  <meta name="theme-color" content="#f7a13a" />
   <title>2048 — BodhiProtocol</title>
   <meta property="og:title" content="2048 — BodhiProtocol" />
   <meta property="og:description" content="Classic 2048 with Kids & Adult modes. Merge. Think. Win." />
@@ -579,5 +581,6 @@ document.addEventListener('touchend', e => {
 /* ── Start ─────────────────────────────────────────────────────── */
 initGame();
 </script>
+<script>if('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js');</script>
 </body>
 </html>
